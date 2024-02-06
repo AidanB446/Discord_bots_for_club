@@ -65,7 +65,6 @@ impl EventHandler for Handler {
             }, 
             
             "!weather" => {
-                msg.channel_id.say(&ctx.http, "im getting your weather whore").await.expect("error");
                 let weather = get_weather().await;
                 msg.channel_id.say(&ctx.http, weather.unwrap()).await.expect("error");
             },
