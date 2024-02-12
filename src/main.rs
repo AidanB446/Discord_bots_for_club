@@ -5,11 +5,10 @@ use evalexpr::eval_int;
 use scraper::*;
 
 
-struct Handler;
-
 pub async fn get_weather() -> Result<String, reqwest::Error> {
     
     let url = "https://weather.com/weather/today/l/857a297816e489427e3c6b82d20cb5cd974d1c6132de1e63e139c32f1bfca2bd";
+    
 
     let weather_page = reqwest::get(url).await?.text().await?;
      
@@ -36,31 +35,35 @@ pub async fn get_weather() -> Result<String, reqwest::Error> {
     
 }
 
+
+struct Handler;
+
+
 #[async_trait]
 impl EventHandler for Handler {
 
     async fn message(&self, ctx : Context, msg : Message)  {
-            
-        if msg.content.contains("!solve ") {
-           
-            let user_equa = msg.content.split(" ").collect::<Vec<&str>>();
-            let user_equa = eval_int(user_equa.get(1).unwrap()).unwrap_or(-255);
-             
-            if user_equa == -255 {
-                msg.channel_id.say(&ctx.http, "error bad operator").await.expect("error"); 
-            } else {
-                msg.channel_id.say(&ctx.http, user_equa.to_string()).await.expect("error");
-            }
 
-        } 
+        let userinp : Vec<&str> = msg.content.split(" ").collect();
 
-        match msg.content.as_str() {
+        match userinp.get(0).unwrap().as_ref() {
             "!ping" => {
                 msg.channel_id.say(&ctx.http, "pong").await.expect("error");
             },
             
+            "!solve" => {
+                let user_equa = userinp.get(1).unwrap().as_ref();
+                let user_equa = eval_int(user_equa).unwrap_or(-255);
+
+                if user_equa == -255 {
+                    msg.channel_id.say(&ctx.http, "error bad operator").await.expect("error");
+                } else {
+                    msg.channel_id.say(&ctx, user_equa.to_string()).await.expect("error");
+                }
+            }
+
             "!help" => {
-                let msssg = "/solve- command solves basic arithmetic expressions. Ex /solve 5+8 ;;; /ping checks the bot, making sure it is running ;;; /weather tell you the weather of largo florida";
+                let msssg = "commands :      !solve- command solves basic arithmetic expressions. Ex !solve 5+8 ;;; !ping checks the bot, making sure it is running ;;; !weather tell you the weather of largo florida";
                 msg.channel_id.say(&ctx.http, msssg).await.expect("error"); 
             }, 
             
@@ -74,6 +77,7 @@ impl EventHandler for Handler {
         
     }
 }
+
 
 #[tokio::main]
 async fn main() {
